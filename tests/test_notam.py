@@ -1,7 +1,8 @@
 import datetime
 import unittest
 import notam
-from tests.test_helper import read_single_notam
+import pytz
+from test_helper import read_single_notam
 
 
 class TestNotam(unittest.TestCase):
@@ -19,8 +20,8 @@ class TestNotam(unittest.TestCase):
                 'fl_upper' : 400,
                 'area' : {'lat' : '5510N', 'long' : '00520W', 'radius' : 50},
                 'location' : ['EGTT', 'EGPX'],
-                'valid_from' : datetime.datetime(1991, 4, 3, 7, 30, tzinfo=datetime.timezone.utc),
-                'valid_till' : datetime.datetime(1991, 4, 28, 15, 0, tzinfo=datetime.timezone.utc),
+                'valid_from' : datetime.datetime(1991, 4, 3, 7, 30, tzinfo=pytz.utc),
+                'valid_till' : datetime.datetime(1991, 4, 28, 15, 0, tzinfo=pytz.utc),
                 'schedule' : 'APR 03 07 12 21 24 AND 28 0730 TO 1500',
                 'body' : 'DANGER AREA DXX IS ACTIVE',
                 'limit_lower' : 'GND',
@@ -39,7 +40,7 @@ class TestNotam(unittest.TestCase):
                 'fl_upper' : 999,
                 'area' : {'lat' : '3250N', 'long' : '03459E', 'radius' : 1},
                 'location' : ['LLLL'],
-                'valid_from' : datetime.datetime(2015, 1, 13, 9, 1, tzinfo=datetime.timezone.utc),
+                'valid_from' : datetime.datetime(2015, 1, 13, 9, 1, tzinfo=pytz.utc),
                 'valid_till' : datetime.datetime.max,
                 'schedule' : None,
                 'body' : 'ATS RTE `H4A` NOT AVBL UFN.',
@@ -52,8 +53,8 @@ class TestNotam(unittest.TestCase):
             notam_text = read_single_notam(notam_to_test)
             n = notam.Notam.from_str(notam_text)
             for (field, value) in expected.items():
-                with self.subTest(msg='Field "{}" of NOTAM "{}"'.format(field, notam_to_test)):
-                    self.assertEquals(getattr(n, field), value)
+                # with self.subTest(msg='Field "{}" of NOTAM "{}"'.format(field, notam_to_test)):
+                self.assertEquals(getattr(n, field), value)
 
 
 if __name__ == '__main__':

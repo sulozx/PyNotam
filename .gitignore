@@ -65,6 +65,9 @@ target/
 .idea/tasks.xml
 .idea/dictionaries
 .idea/inspectionProfiles/
+.idea/encodings.xml
+.idea/markdown-navigator.xml
+.idea/markdown-navigator/profiles_settings.xml
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids

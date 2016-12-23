@@ -1,5 +1,6 @@
 import parsimonious
 import timeutils
+import pytz
 
 grammar = parsimonious.Grammar(r"""
     root = "(" header __ q_clause __ a_clause __ b_clause __ (c_clause __)? (d_clause __)? e_clause (__ f_clause __ g_clause)? ")"
@@ -47,7 +48,7 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
         """tgt must be an instance of an object with a __dict__ attribute. All data attributes
         resulting from the parsing of the NOTAM will be assigned to that object."""
         self.tgt = self if tgt is None else tgt
-        super().__init__()
+        super(NotamParseVisitor, self).__init__()
 
     grammar = grammar
 
@@ -59,10 +60,11 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
     def visit_simple_regex(self, node, _): return node.match.group(0)
     visit_till_next_clause = visit_simple_regex
 
-    def visit_code_node(self, *args, meanings):
+    def visit_code_node(self, *args, **kwargs):
         """Maps coded strings, where each character encodes a special meaning, into a corresponding decoded set
         according to the meanings dictionary (see examples of usage further below)"""
         codes = self.visit_simple_regex(*args)
+        meanings = kwargs['meanings']
         return set([meanings[code] for code in codes])
 
     def visit_intX(self, *args):
@@ -168,7 +170,7 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
     def visit_datetime(self, _, visited_children):
         dparts = visited_children
         dparts[0] = 1900 + dparts[0] if dparts[0] > 80 else 2000 + dparts[0] # interpret 2-digit year
-        return timeutils.datetime(*dparts, tzinfo=timeutils.timezone.utc)
+        return timeutils.datetime(*dparts, tzinfo=pytz.utc)
 
     def generic_visit(self, _, visited_children):
         return visited_children

@@ -1,6 +1,6 @@
 import unittest
 from _parser import grammar
-from tests.test_helper import read_test_data
+from test_helper import read_test_data
 
 
 class GrammarParse(unittest.TestCase):
