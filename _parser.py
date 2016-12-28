@@ -21,8 +21,10 @@ grammar = parsimonious.Grammar(r"""
     upper_limit = int3
     area_of_effect = ~r"(?P<lat>[0-9]{4}[NS])(?P<long>[0-9]{5}[EW])(?P<radius>[0-9]{3})"
 
-    a_clause = "A)" _ location_icao ("/" location_icao)*
+    a_clause = "A)" _ location_icao ("/" location_icao)* (_ "PART" _ part_counter_of _ "OF" _ part_counter_all)? till_next_clause
     location_icao = icao_id
+    part_counter_of = int1
+    part_counter_all = int1
 
     b_clause = "B)" _ datetime
     c_clause = "C)" _ ((datetime estimated?) / permanent)
@@ -38,6 +40,7 @@ grammar = parsimonious.Grammar(r"""
     __ = (" " / "\n")+
     icao_id = ~r"[A-Z]{4}"
     datetime = int2 int2 int2 int2 int2 # year month day hours minutes
+    int1 = ~r"[0-9]{1}"
     int2 = ~r"[0-9]{2}"
     int3 = ~r"[0-9]{3}"
     till_next_clause = ~r".*?(?=(?:\)$)|(?:\s[A-Z]\)))"s
@@ -71,6 +74,7 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
         v = self.visit_simple_regex(*args)
         return int(v)
 
+    visit_int1 = visit_intX
     visit_int2 = visit_intX
     visit_int3 = visit_intX
 
@@ -90,6 +94,8 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
     visit_icao_id = visit_simple_regex
     visit_notam_id = visit_simple_regex
     visit_notam_code = visit_simple_regex
+    visit_part_counter_of = visit_simple_regex
+    visit_part_counter_all = visit_simple_regex
 
     def visit_q_clause(self, node, visited_children):
         self.tgt.fir = visited_children[2]
@@ -121,7 +127,7 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
         self.tgt.area = node.match.groupdict() # dictionary containing mappings for 'lat', 'long', and 'radius'
         self.tgt.area['radius'] = int(self.tgt.area['radius'])
 
-    def visit_a_clause(self, node, _):
+    def visit_a_clause(self, node, visited_children):
         def _dfs_icao_id(n):
             if n.expr_name == "icao_id": return [self.visit_simple_regex(n, [])]
             return sum([_dfs_icao_id(c) for c in n.children], []) # flatten list-of-lists
@@ -129,6 +135,10 @@ class NotamParseVisitor(parsimonious.NodeVisitor):
         start = node.children[2].start
         end = node.children[-1].end
         self.tgt.location = _dfs_icao_id(node)
+        part_group = visited_children[4]
+        if part_group:
+            self.tgt.part_counter_of = part_group[0][3]
+            self.tgt.part_counter_all = part_group[0][7]
         self.tgt.indices_item_a = (start, end)
 
     def visit_b_clause(self, node, visited_children):

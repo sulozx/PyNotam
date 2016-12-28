@@ -39,6 +39,8 @@ class Notam(object):
         self.body = None            # Text of NOTAM; Plain-language Entry (using ICAO Abbreviations).
         self.limit_lower = None     # Textual specification of lower height limit of activities or restrictions.
         self.limit_upper = None     # Textual specification of upper height limits of activities or restrictions.
+        self.part_counter_of = None  # If notam has parts, part counter
+        self.part_counter_all = None  # If notam has parts, number of all parts
 
         # The following contain [start,end) indices for their corresponding NOTAM items (if such exist).
         # They can be used to index into Notam.full_text.
